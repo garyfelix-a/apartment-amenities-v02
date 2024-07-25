@@ -9,11 +9,10 @@ import ReviewImage from "../assets/reviewspage.png";
 const amenities = ["Fitness Center", "Parking", "Playground", "Spa", "Pools"];
 
 //child component for star rating system. It takes rating, setRating, hover, and setHover as props
-const StarRating = ({ rating, setRating, hover, setHover }) => (
+const StarRating = ({ rating, setRating, hover, setHover, onRate }) => (
   <div className="flex">
     {/* creating a array of 5 stars */}
     {[...Array(5)].map((star, index) => {
-      // let currentRating = 1;
       const currentRating = index + 1;
       return (
         <label key={index} className="text-[#c0c0c0]">
@@ -21,7 +20,10 @@ const StarRating = ({ rating, setRating, hover, setHover }) => (
             type="radio"
             value={index}
             className="radio"
-            onClick={() => setRating(currentRating)}
+            onClick={() => {
+              setRating(currentRating);
+              onRate();
+            }}
             required={true}
           />
           <FaStar
@@ -48,6 +50,7 @@ StarRating.propTypes = {
   setRating: PropTypes.func.isRequired,
   hover: PropTypes.number,
   setHover: PropTypes.func.isRequired,
+  onRate: PropTypes.func.isRequired,
 };
 
 //parent funtion contains reviews form
@@ -65,6 +68,7 @@ const Form = () => {
   const [newOpinion, setNewOpinion] = useState("");
   const [isEditable, setIsEditable] = useState(false);
   const [apartmentRatings, setApartmentRatings] = useState([]);
+  const [showAddBtn, setShowAddBtn] = useState({});
 
   useEffect(() => {
     const storedRatings = JSON.parse(localStorage.getItem("apartmentRatings"));
@@ -75,6 +79,13 @@ const Form = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+
+    const allRated = amenities.every((amenity) => ratings[amenity]);
+    if(!allRated){
+      alert("Please fill out all ratings before submission.");
+      return;
+    }
+
     let newData = {
       name: currentName,
       overallRating,
@@ -89,7 +100,6 @@ const Form = () => {
     localStorage.setItem("apartmentRatings", JSON.stringify(updatedRatings));
 
     console.log("apartment data: " + apartmentRatings);
-    // setFormSubmitted(true);
     setCurrentName("");
     setOverallStarRating("");
     setOverallRating("");
@@ -97,9 +107,7 @@ const Form = () => {
     setRatings({});
     setOpinions({});
     setHoverState({});
-    // console.log("Ratings:", ratings);
-    // console.log("Opinions:", opinions);
-    // console.log("Overall:", overallRating);
+    setShowAddBtn({});
   };
 
   const handleAddOpinion = (amenity) => {
@@ -122,6 +130,10 @@ const Form = () => {
     setIsEditable(false);
   };
 
+  const handleStarRating = (amenity) => {
+      setShowAddBtn({...showAddBtn, [amenity]:true});
+  }
+
   return (
     <section className="reviews">
       <h2 className="bg-[#131842] w-full text-center p-10 text-xl">
@@ -133,7 +145,7 @@ const Form = () => {
       >
         <div className="form-left w-[50%] overflow-y-scroll pr-4 max-lg:w-full max-xl:w-full pb-2">
           <div className="overall-rating">
-            <h2 className="text-[#8c0000] text-2xl font-montserrat capitalize">
+            <h2 className="text-black font-bold text-2xl font-montserrat capitalize">
               Express your ratings
             </h2>
             <div className="complete-rating">
@@ -162,18 +174,11 @@ const Form = () => {
                 onChange={(e) => setOverallRating(e.target.value)}
               />
             </div>
-            {/* <input type="text" />
-          <textarea
-            className="overall-rating-text"
-            placeholder="Please Share Your Experience"
-            value={overallRating}
-            onChange={(e) => setOverallRating(e.target.value)}
-          /> */}
           </div>
 
           {/* amenities ratings area */}
           <div className="amenities max-lg:w-full">
-            <h4 className="text-[#8c0000] font-montserrat text-[22px]">
+            <h4 className="text-black font-bold font-montserrat text-[22px]">
               Amenities:{" "}
             </h4>
             {amenities.map((amenity) => (
@@ -191,10 +196,12 @@ const Form = () => {
                     setHover={(hover) => {
                       setHoverState({ ...hoverState, [amenity]: hover });
                     }}
+                    onRate={() => handleStarRating(amenity)}
                   />
                 </div>
-                <div className="add-new-opinion">
-                  {opinions[amenity] ? (
+                {/* <div className="add-new-opinion">
+                  {showAddBtn[amenity] &&
+                   opinions[amenity] ? (
                     <>
                       <div className="popup-result flex items-center justify-between">
                         <span className="edit-text border-2 p-3 mr-2 rounded-[5px] text-[18px] capitalize overflow-x-scroll max-lg:w-[80%] max-lg:max-h-[100px]">
@@ -217,6 +224,34 @@ const Form = () => {
                     >
                       Add Opinion
                     </button>
+                  )}
+                </div> */}
+                <div className="add-new-opinion">
+                  {showAddBtn[amenity] && (
+                    opinions[amenity] ? (
+                      <>
+                        <div className="popup-result flex items-center justify-between">
+                          <span className="edit-text border-2 p-3 mr-2 rounded-[5px] text-[18px] capitalize overflow-x-scroll max-lg:w-[80%] max-lg:max-h-[100px]">
+                            {opinions[amenity]}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleEditOpinion(amenity)}
+                            className="edit-btn border-2 border-[gray] font-palanquin font-extralight hover:text-black max-lg:text-[18px] p-2 rounded-[7px] text-[#219419] hover:bg-[#dcffdc]"
+                          >
+                            Edit Opinion
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleAddOpinion(amenity)}
+                        className="add-btn border-2 border-[gray] font-palanquin font-extralight hover:text-black max-lg:text-[20px] p-2 rounded-[7px] text-[#219419] hover:bg-[#dcffdc]"
+                      >
+                        Add Opinion
+                      </button>
+                    )
                   )}
                 </div>
               </div>
@@ -250,7 +285,11 @@ const Form = () => {
                 placeholder="Enter your opinion..."
                 className="border-2 border-black mt-2 px-2 py-4 mr-2 rounded-[10px] w-full capitalize"
               />
-              <button type="button" onClick={handleSaveOpinion} className="border-2 border-black text-[18px] py-2 px-6 mt-2 rounded-[5px] hover:bg-[#94ff94]">
+              <button
+                type="button"
+                onClick={handleSaveOpinion}
+                className="border-2 border-black text-[18px] py-2 px-6 mt-2 rounded-[5px] hover:bg-[#94ff94]"
+              >
                 {isEditable ? "Update" : "Add"}
               </button>
             </div>

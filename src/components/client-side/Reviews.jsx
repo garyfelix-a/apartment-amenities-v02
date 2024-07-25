@@ -358,7 +358,7 @@ export const Reviews = () => {
             ))}
             {showPopup && selectedReviews && (
               <div className="popup-box w-full h-[100vh] absolute left-0 right-0 top-0 ml-auto mr-auto bg-[#808080a1] p-[50px] flex justify-center items-center">
-                <div className="popup-modal-inside w-full h-[70vh] p-4 bg-white overflow-y-scroll m-20 transition-all border-2">
+                <div className="popup-modal-inside w-full h-[70vh] p-4 bg-[#e8e7e7] overflow-y-scroll m-20 transition-all border-2">
                   <h3 className="flex items-center text-lg capitalize font-semibold">
                     <CgProfile className="text-[gray] text-[29px] mr-1" />
                     {selectedReviews.name}
